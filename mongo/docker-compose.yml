@@ -1,0 +1,31 @@
+version: '3.4'
+services:
+  mongo-service:
+    container_name: mongo-service
+    image: mongo:4.2.2
+    hostname: mongo-service
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: test
+      MONGO_INITDB_ROOT_PASSWORD: test
+      MONGO_INITDB_DATABASE: feedback_db
+      MONGO_REPLICA_SET_NAME: rs_name
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: test $${echo "rs.initiate().ok || rs.status().ok || rs.slaveOk()" || mongo -u test -p test --quiet) -eq 1
+      interval: 10s
+      start_period: 30s
+    command: ["/usr/bin/mongod", "--replSet", "--bind_ip_all"]
+    volumes:
+      - type: volume
+        source: mongo-docker-vol
+        target: /data/db
+    networks:
+      - backend-network
+
+volumes:
+  mongo-docker-vol:
+    external: true
+networks:
+  backend-network:
+    external: true
